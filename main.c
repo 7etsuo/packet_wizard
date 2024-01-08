@@ -13,19 +13,35 @@ typedef struct pcap_addr pcap_addr;
 
 void pcap_error_exit(const char * const s);
 void print_address(struct sockaddr *addr);
+int init_pcap(pcap_if_t *alldevsp);
+void print_devices(pcap_if_t *alldevsp);
+void app_runner(pcap_if_t *alldevsp);
 
 int
 main(int argc, char **argv)
 {
     pcap_if_t *alldevsp;
+
+    if (!init_pcap(alldevsp)) pcap_error_exit(errbuf);
+
+    app_runner(alldevsp);
+
+    pcap_freealldevs(alldevsp);
+
+    return 0;
+}
+
+void
+app_runner(pcap_if_t *alldevsp)
+{ 
+    print_devices(alldevsp);
+}
+
+void 
+print_devices(pcap_if_t *alldevsp)
+{
     pcap_if_t *devicep;
     pcap_addr *address;
-
-    if(pcap_init(PCAP_CHAR_ENC_LOCAL, errbuf))
-        pcap_error_exit(errbuf);
-
-    if(pcap_findalldevs(&alldevsp, errbuf))
-        pcap_error_exit(errbuf);
 
     for (devicep = alldevsp; devicep->next; devicep = devicep ->next) { 
         printf("\nDEVICE:\n");
@@ -53,12 +69,10 @@ main(int argc, char **argv)
             }
         }
     }
-    pcap_freealldevs(alldevsp);
-
-    return 0;
 }
 
-void print_address(struct sockaddr *addr) 
+void 
+print_address(struct sockaddr *addr) 
 {
     char ipstr[INET6_ADDRSTRLEN];
     int ai_family, unk_flag;
@@ -88,5 +102,11 @@ pcap_error_exit(const char * const s)
 { 
     fprintf(stderr, "%s\n", s);
     exit(EXIT_FAILURE);
+}
+
+int 
+init_pcap(pcap_if_t *alldevsp)
+{
+    return pcap_init(PCAP_CHAR_ENC_LOCAL, errbuf) == 0 && pcap_findalldevs(&alldevsp, errbuf) == 0;
 }
 
