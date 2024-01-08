@@ -13,7 +13,7 @@ typedef struct pcap_addr pcap_addr;
 
 void pcap_error_exit(const char * const s);
 void print_address(struct sockaddr *addr);
-int init_pcap(pcap_if_t *alldevsp);
+int init_pcap(pcap_if_t **alldevsp);
 void print_devices(pcap_if_t *alldevsp);
 void app_runner(pcap_if_t *alldevsp);
 
@@ -22,7 +22,7 @@ main(int argc, char **argv)
 {
     pcap_if_t *alldevsp;
 
-    if (!init_pcap(alldevsp)) pcap_error_exit(errbuf);
+    if (!init_pcap(&alldevsp)) pcap_error_exit(errbuf);
 
     app_runner(alldevsp);
 
@@ -105,8 +105,8 @@ pcap_error_exit(const char * const s)
 }
 
 int 
-init_pcap(pcap_if_t *alldevsp)
+init_pcap(pcap_if_t **alldevsp)
 {
-    return pcap_init(PCAP_CHAR_ENC_LOCAL, errbuf) == 0 && pcap_findalldevs(&alldevsp, errbuf) == 0;
+    return pcap_init(PCAP_CHAR_ENC_LOCAL, errbuf) == 0 && pcap_findalldevs(alldevsp, errbuf) == 0;
 }
 
